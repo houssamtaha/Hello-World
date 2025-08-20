@@ -118,7 +118,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: backend-target
-          path: HelloWorldBackend/target
+          path: backend-jar
 
       - name: Deploy frontend
         run: |
@@ -128,7 +128,7 @@ jobs:
       - name: Deploy backend
         run: |
           sudo mkdir -p /var/www/helloworld/backend
-          sudo cp HelloWorldBackend/target/*.jar /var/www/helloworld/backend/app.jar
+          sudo cp backend-jar/*.jar /var/www/helloworld/backend/app.jar
 
       - name: Restart backend
         run: |
