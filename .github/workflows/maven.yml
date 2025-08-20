@@ -44,12 +44,6 @@ jobs:
            name: frontend-dist
            path: HelloWorldFrontend/static/
 
-      - name: Download frontend artifact
-        uses: actions/download-artifact@v4
-        with:
-         name: frontend-dist
-         path: frontend-dist  # local folder for deployment
-
   # =======================
   # Backend Build (Java)
   # =======================
@@ -118,7 +112,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: HelloWorldFrontend/dist/HelloWorldFrontend
+          path: frontend-dist
 
       - name: Download backend artifact
         uses: actions/download-artifact@v4
