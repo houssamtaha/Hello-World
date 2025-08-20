@@ -34,16 +34,15 @@ jobs:
         run: |
           cd HelloWorldFrontend
           ng build --configuration production
-          # list the real output folder dynamically
-          OUTPUT=$(jq -r '.projects.HelloWorldFrontend.architect.build.options.outputPath' angular.json)
-          echo "Frontend build folder: $OUTPUT"
-          ls -R $OUTPUT
+          npm ci
+          ng build --configuration production
+          ls -R static
 
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
         with:
            name: frontend-dist
-           path: HelloWorldFrontend/$OUTPU
+           path: HelloWorldFrontend/static
 
   # =======================
   # Backend Build (Java)
@@ -124,7 +123,7 @@ jobs:
       - name: Deploy frontend
         run: |
           sudo mkdir -p /var/www/helloworld/frontend
-          sudo cp -r HelloWorldFrontend/dist/*/* /var/www/helloworld/frontend/
+          sudo cp -r HelloWorldFrontend/static/* /var/www/helloworld/frontend/
 
       - name: Deploy backend
         run: |
