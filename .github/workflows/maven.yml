@@ -123,7 +123,7 @@ jobs:
       - name: Deploy frontend
         run: |
           sudo mkdir -p /var/www/helloworld/frontend
-          sudo cp -r HelloWorldFrontend/static/* /var/www/helloworld/frontend/
+          sudo cp -r frontend-dist/* /var/www/helloworld/frontend/
 
       - name: Deploy backend
         run: |
