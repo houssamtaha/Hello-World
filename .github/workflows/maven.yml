@@ -40,7 +40,7 @@ jobs:
           ls -R $OUTPUT
 
       - name: Upload frontend artifact
-         uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4
          with:
            name: frontend-dist
            path: HelloWorldFrontend/$OUTPU
