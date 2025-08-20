@@ -34,13 +34,12 @@ jobs:
         run: |
           cd HelloWorldFrontend
           ng build --configuration production
-          ls -R dist
-
+          ls -R dist/HelloWorldFrontend
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: HelloWorldFrontend/dist/
+          path: HelloWorldFrontend/dist//HelloWorldFrontend
 
   # =======================
   # Backend Build (Java)
