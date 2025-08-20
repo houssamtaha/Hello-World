@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
            name: frontend-dist
-           path: frontend-dist
+           path: HelloWorldFrontend/static/
 
   # =======================
   # Backend Build (Java)
@@ -123,7 +123,7 @@ jobs:
       - name: Deploy frontend
         run: |
           sudo mkdir -p /var/www/helloworld/frontend
-          sudo cp -r frontend-dist/* /var/www/helloworld/frontend/
+          sudo cp -r HelloWorldFrontend/static/* /var/www/helloworld/frontend/
 
       - name: Deploy backend
         run: |
