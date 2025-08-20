@@ -1,34 +1,135 @@
-name: Node.js CI
+name: Hello-World CI/CD
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:  # manual trigger
 
 jobs:
-  build:
+  # =======================
+  # Frontend Build (Angular)
+  # =======================
+  frontend_build:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18, 20]  # test against multiple Node versions
-
+    outputs:
+      dist-folder: ${{ steps.set-output.outputs.dist-folder }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18
           cache: npm
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Angular CLI and dependencies
+        run: |
+          cd HelloWorldFrontend
+          npm install -g @angular/cli@14.0.0
+          npm ci
 
-      - name: Run tests
-        run: npm test --if-present
+      - name: Build Angular frontend
+        run: |
+          cd HelloWorldFrontend
+          ng build --configuration production
+          ls -R dist
 
-      - name: Build project
-        run: npm run build --if-present
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: HelloWorldFrontend/dist/
+
+  # =======================
+  # Backend Build (Java)
+  # =======================
+  backend_build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 18
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 18
+
+      - name: Build backend
+        run: |
+          cd HelloWorldBackend
+          ./mvnw clean compile
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-target
+          path: HelloWorldBackend/target/
+
+  # =======================
+  # Backend Test (Java)
+  # =======================
+  backend_test:
+    runs-on: ubuntu-latest
+    needs: backend_build
+    steps:
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-target
+          path: HelloWorldBackend/target
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 18
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 18
+
+      - name: Run backend tests
+        run: |
+          cd HelloWorldBackend
+          ./mvnw test
+
+  # =======================
+  # Deploy
+  # =======================
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [frontend_build, backend_build]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: http://localhost:8080
+    steps:
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: HelloWorldFrontend/dist
+
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-target
+          path: HelloWorldBackend/target
+
+      - name: Deploy frontend
+        run: |
+          sudo mkdir -p /var/www/helloworld/frontend
+          sudo cp -r HelloWorldFrontend/dist/*/* /var/www/helloworld/frontend/
+
+      - name: Deploy backend
+        run: |
+          sudo mkdir -p /var/www/helloworld/backend
+          sudo cp HelloWorldBackend/target/*.jar /var/www/helloworld/backend/app.jar
+
+      - name: Restart backend
+        run: |
+          pkill -f 'java -jar' || true
+          nohup java -jar /var/www/helloworld/backend/app.jar > /var/www/helloworld/backend/app.log 2>&1 &
